@@ -14,13 +14,65 @@ struct Book {
     char title[100];
     int floor;
     int isAvailable;
-    int borrowerId; // ID of the user who borrowed the book (-1 if not borrowed)
+    int borrowerId;
 };
 
 struct User users[MAX_USERS];
 struct Book books[MAX_BOOKS];
+
 int numUsers = 0;
 int numBooks = 0;
+
+void saveBooksToFile() {
+    int i;
+    FILE *file = fopen("books.txt", "w");
+    if (file == NULL) {
+        printf("Error opening books file for writing.\n");
+        return;
+    }
+
+    for (i = 0; i < numBooks; i++) {
+	fprintf(file, "%d %s %d %d %d\n", books[i].bookId, books[i].title, books[i].floor, books[i].isAvailable, books[i].borrowerId);
+    }
+
+    fclose(file);
+}
+
+void loadBooksFromFile() {
+    FILE *file = fopen("books.txt", "r");
+    if (file == NULL) {
+        printf("Error opening books file for reading.\n");
+        return;
+    }
+
+    while (fscanf(file, "%d %s %d %d %d", &books[numBooks].bookId, books[numBooks].title, &books[numBooks].floor, &books[numBooks].isAvailable, &books[numBooks].borrowerId) == 5) {
+        numBooks++;
+    }
+
+    fclose(file);
+}
+
+void addBook() {
+    clrscr();
+    if (numBooks < MAX_BOOKS) {
+        struct Book book;
+        book.bookId = numBooks + 1;
+        printf("Enter book title: ");
+        scanf("%s", book.title);
+        printf("Enter book floor: ");
+        scanf("%d", &book.floor);
+        book.isAvailable = 1;
+        books[numBooks] = book;
+        numBooks++;
+        printf("Book added successfully!\n");
+
+        // Save the updated book data to the file
+        saveBooksToFile();
+    } else {
+        printf("Maximum number of books reached!\n");
+    }
+}
+
 
 void addUser() {
     clrscr();
@@ -71,24 +123,6 @@ void displayUsers() {
     }
 }
 
-void addBook() {
-    clrscr();
-    if (numBooks < MAX_BOOKS) {
-        struct Book book;
-        book.bookId = numBooks + 1;
-        printf("Enter book title: ");
-        scanf("%s", book.title);
-        printf("Enter book floor: ");
-        scanf("%d", &book.floor);
-        book.isAvailable = 1;
-        books[numBooks] = book;
-        numBooks++;
-        printf("Book added successfully!\n");
-    } else {
-        printf("Maximum number of books reached!\n");
-    }
-}
-
 void displayBooks() {
     int i ;
     clrscr();
@@ -99,8 +133,8 @@ void displayBooks() {
 }
 
 void searchBooksOnFloor() {
-    clrscr();
     int floor,i,found;
+    clrscr();
     printf("Enter floor to search for books: ");
     scanf("%d", &floor);
 
@@ -229,6 +263,7 @@ void returnBook() {
 
 int main() {
     int choice;
+    loadBooksFromFile();
     clrscr();
     while (1) {
         printf("\nLibrary Management System\n");
